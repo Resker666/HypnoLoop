@@ -1,6 +1,6 @@
 # HypnoLoop Android Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 交付可安装的 Android 螺旋／爱心全屏工具，并保留以后适配 iOS 和电脑的共享绘制、界面及设置代码。
 
@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.41.5（`2c9eb20739dfec95e2c74bd3dfa4601b0a8a36aa`）、SDK 自带 Dart、shared_preferences 2.5.5、AGP 8.13.2、Kotlin Android 2.3.21、Gradle 8.13、Java 17、compileSdk / targetSdk 36、Build Tools 35.0.0、minSdk 24。
 
-**Spec:** [首版设计](../specs/2026-10-04-hypnoloop-design.md)。环境路径与核验依据见 [开发环境](../../development-setup.md)。用户选择 Flutter 并授权当前对话依次实施。Tasks 1–4 已完成，Task 5 的离线构建已通过，独立审查进行中；手机安装测试等待授权。
+**Spec:** [首版设计](../specs/2026-10-04-hypnoloop-design.md)。环境路径与核验依据见 [开发环境](../../development-setup.md)。用户选择 Flutter 并授权当前对话依次实施。Tasks 1–5 已完成：25 项 Flutter 测试、应用离线构建、一次独立审查及三项回归修复通过；用户授权后完成 API 36 真机操作、断网恢复设置和短时 profile 性能验证。应用验收任务明确限定在 :app:，取舍见执行记录。
 
 ## Global Constraints
 
@@ -57,12 +57,12 @@
 - 产生 `PlaybackClock extends ChangeNotifier`；`double get animationSeconds`、`bool get isPlaying`、`bool get isAdvancing`、`void advance(Duration delta)`、`void setPlaying(bool value)`、`void setForeground(bool value)`、`void setSpeed(double value)`。`isPlaying` 是用户选择，`isAdvancing` 还考虑前台状态。
 - 构建脚本接受 `-Online` 开关，默认离线；工具路径默认使用已核验路径，可用参数替换，系统级环境变量不改动。
 
-- [ ] 在实施开始时使用 worktree 技能检查当前目录；此处没有现成 Git 仓库，先以当前新项目目录初始化 Git 并忽略 `.tools/`、构建产物、local.properties、签名及 APK，不把 Flutter SDK 内的 Git 仓库加入项目。
-- [ ] 使用固定 SDK 创建仅 Android 的 Flutter 工程，名称 `hypnoloop`，组织名 `com.hypnoloop`，`--no-pub`；保留现有 docs。设置 Android 版本及 Java 17，debug 使用标准调试签名，Wrapper 记录 8.13 分发 URL 和 SHA-256 `20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78`。
-- [ ] 工具初始化只补 Flutter 必需的宿主测试和 Android 缓存；不预下载 iOS 或桌面发布组件。Pub 解析先离线，日志明确缺项后再联网补足。
-- [ ] 若 Flutter 找不到独立 ADB，在项目 `.tools/android-sdk/` 建立 SDK 视图：`platforms`、`build-tools` junction 指向已有 SDK，`platform-tools` junction 指向 `D:/soft/platform-tools`；不复制或重下已有工具。只有实际构建需要时在该视图补 cmdline-tools、licenses 或 NDK，并记录实际目标路径。
-- [ ] 先写失败测试：默认参数等于设计值；上下界被限制；非法值使用字段默认值；非当前 JSON 版本恢复整体默认值。测试包括错误 enum、非数字、NaN、无限值、非法颜色及损坏根结构。
-- [ ] 先写失败时间测试，核心断言如下：
+- [x] 在实施开始时使用 worktree 技能检查当前目录；此处没有现成 Git 仓库，先以当前新项目目录初始化 Git 并忽略 `.tools/`、构建产物、local.properties、签名及 APK，不把 Flutter SDK 内的 Git 仓库加入项目。
+- [x] 使用固定 SDK 创建仅 Android 的 Flutter 工程，名称 `hypnoloop`，组织名 `com.hypnoloop`，`--no-pub`；保留现有 docs。设置 Android 版本及 Java 17，debug 使用标准调试签名，Wrapper 记录 8.13 分发 URL 和 SHA-256 `20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78`。
+- [x] 工具初始化只补 Flutter 必需的宿主测试和 Android 缓存；不预下载 iOS 或桌面发布组件。Pub 解析先离线，日志明确缺项后再联网补足。
+- [x] 若 Flutter 找不到独立 ADB，在项目 `.tools/android-sdk/` 建立 SDK 视图：`platforms`、`build-tools` junction 指向已有 SDK，`platform-tools` junction 指向 `D:/soft/platform-tools`；不复制或重下已有工具。只有实际构建需要时在该视图补 cmdline-tools、licenses 或 NDK，并记录实际目标路径。
+- [x] 先写失败测试：默认参数等于设计值；上下界被限制；非法值使用字段默认值；非当前 JSON 版本恢复整体默认值。测试包括错误 enum、非数字、NaN、无限值、非法颜色及损坏根结构。
+- [x] 先写失败时间测试，核心断言如下：
 
 ```dart
 clock.advance(const Duration(seconds: 12));
@@ -80,9 +80,9 @@ clock.advance(const Duration(seconds: 1));
 expect(clock.animationSeconds, 8.0);
 ```
 
-- [ ] 运行 `flutter test test/features/player/settings_test.dart test/features/player/playback_clock_test.dart`，确认因模型／时钟未实现而失败；实现接口及验证逻辑。
-- [ ] 补足 60Hz / 120Hz 等时长推进结果近似相等的测试，运行同一命令通过；以微秒误差容差比较累计时间，不要求浮点精确相等。
-- [ ] 记录此时真实 Flutter／Dart 版本和工具补充项，提交本任务的源码、测试、构建配置与文档。
+- [x] 运行 `flutter test test/features/player/settings_test.dart test/features/player/playback_clock_test.dart`，确认因模型／时钟未实现而失败；实现接口及验证逻辑。
+- [x] 补足 60Hz / 120Hz 等时长推进结果近似相等的测试，运行同一命令通过；以微秒误差容差比较累计时间，不要求浮点精确相等。
+- [x] 记录此时真实 Flutter／Dart 版本和工具补充项，提交本任务的源码、测试、构建配置与文档。
 
 ## Task 2: 两种自绘动画
 
@@ -93,12 +93,12 @@ expect(clock.animationSeconds, 8.0);
 - 产生 `double coverageRadius(Size size)`、`List<Path> buildSpiralPaths(Size size, int stripes, double density)`、`Path buildUnitHeartPath()`、`List<HeartLayer> heartLayers(double animationSeconds, double intervalSeconds)`；`HeartLayer` 包含 `double scale` 和 `int colorIndex`。
 - 产生 `SpiralPainter({required AppSettings settings, required PlaybackClock clock})` 和 `HeartsPainter(...)`，由 `CustomPainter(repaint: clock)` 重绘，不让整个页面在每帧重建。
 
-- [ ] 写失败几何测试：`coverageRadius(Size(300, 400)) >= 250`；条纹数 2 和 8、疏密 1 和 5 均产生有限且有覆盖范围的形状；零尺寸不异常；横竖屏交换后覆盖范围正确；心形路径闭合、左右对称且宽高非零。
-- [ ] 写扩散时间测试：同一动画时间与间隔产生相同层；所有层的比例为有限非负值；4 秒基准扩散周期与 0.4–2.0 秒间隔不会无限生成层。
-- [ ] 运行 `flutter test test/features/player/geometry_test.dart` 确認缺失实现导致失败，实现以上接口。以半对角线和边界余量计算覆盖范围，尺寸／形状参数改变时重建几何缓存；按从外到内顺序绘制爱心层。
-- [ ] 写并运行 painter widget 测试，在固定时间绘制两种效果，验证无渲染异常、两种颜色出现及 resize 后画布铺满；人工查看固定帧 PNG，不能只依据 `shouldRepaint` 测试宣称视觉正确。
-- [ ] 给螺旋应用顺／逆时针与 12 秒一周的相位，中心爱心按短边比例绘制；用最新设置重新创建 painter，沿用时钟相位。
-- [ ] 两个测试文件通过后，保留实际借鉴的 MIT 来源声明并提交。
+- [x] 写失败几何测试：`coverageRadius(Size(300, 400)) >= 250`；条纹数 2 和 8、疏密 1 和 5 均产生有限且有覆盖范围的形状；零尺寸不异常；横竖屏交换后覆盖范围正确；心形路径闭合、左右对称且宽高非零。
+- [x] 写扩散时间测试：同一动画时间与间隔产生相同层；所有层的比例为有限非负值；4 秒基准扩散周期与 0.4–2.0 秒间隔不会无限生成层。
+- [x] 运行 `flutter test test/features/player/geometry_test.dart` 确認缺失实现导致失败，实现以上接口。以半对角线和边界余量计算覆盖范围，尺寸／形状参数改变时重建几何缓存；按从外到内顺序绘制爱心层。
+- [x] 写并运行 painter widget 测试，在固定时间绘制两种效果，验证无渲染异常、两种颜色出现及 resize 后画布铺满；人工查看固定帧 PNG，不能只依据 `shouldRepaint` 测试宣称视觉正确。
+- [x] 给螺旋应用顺／逆时针与 12 秒一周的相位，中心爱心按短边比例绘制；用最新设置重新创建 painter，沿用时钟相位。
+- [x] 两个测试文件通过后，保留实际借鉴的 MIT 来源声明并提交。
 
 ## Task 3: 播放操作与安卓显示适配
 
@@ -109,13 +109,13 @@ expect(clock.animationSeconds, 8.0);
 - 产生 `DisplayController`：`Future<void> apply({required bool fullscreen, required bool keepAwake})`、`Future<void> restore()`。通道为 `hypnoloop/display`，方法 `apply` 参数为 `fullscreen` / `keepAwake`；`restore` 恢复正常显示。
 - `SettingsPanel` 消费 `AppSettings settings`、`ValueChanged<AppSettings> onChanged`、`VoidCallback onChangeEnd`，不拥有播放时钟。
 
-- [ ] 写失败界面测试：切换两种动画、开始全屏、单击呼出控件、3 秒隐藏、设置打开时不隐藏、暂停／恢复，以及返回先关闭设置再退出全屏。
-- [ ] 写 resize / 生命周期测试：面板打开时横竖尺寸改变没有溢出；暂停后后台再前台仍暂停；播放时后台不推进，恢复后按新时间差推进，不计入后台时长。
-- [ ] 写平台通道测试，断言全屏播放为 `{fullscreen: true, keepAwake: true}`；暂停保留 fullscreen 并关闭常亮；离开播放器调用 restore；模拟 PlatformException 后仍能退出并显示简短失败提示。
-- [ ] 运行 `flutter test test/features/player/player_page_test.dart test/platform/display_controller_test.dart` 确认失败，实现简体中文界面、可滚动设置面板及 Ticker 时间差适配。
-- [ ] Android 使用 API 30+ 的 WindowInsetsController，API 24–29 使用兼容的窗口标志；常亮使用 FLAG_KEEP_SCREEN_ON。方法只接受合法布尔参数；onWindowFocusChanged 按当前请求恢复全屏，离开／暂停清除常亮。不引入 AndroidX 以外的新显示依赖。
-- [ ] 默认进入预览，内置三种配色；颜色调节使用 Flutter 自带控件实现 RGB 滑块，不增加颜色选择器插件。保持暂停、退出按钮在 SafeArea 内。
-- [ ] 上述测试通过后提交；真正隐藏系统栏及返回手势的效果由 Task 5 真机验证，mock 通道测试不能替代。
+- [x] 写失败界面测试：切换两种动画、开始全屏、单击呼出控件、3 秒隐藏、设置打开时不隐藏、暂停／恢复，以及返回先关闭设置再退出全屏。
+- [x] 写 resize / 生命周期测试：面板打开时横竖尺寸改变没有溢出；暂停后后台再前台仍暂停；播放时后台不推进，恢复后按新时间差推进，不计入后台时长。
+- [x] 写平台通道测试，断言全屏播放为 `{fullscreen: true, keepAwake: true}`；暂停保留 fullscreen 并关闭常亮；离开播放器调用 restore；模拟 PlatformException 后仍能退出并显示简短失败提示。
+- [x] 运行 `flutter test test/features/player/player_page_test.dart test/platform/display_controller_test.dart` 确认失败，实现简体中文界面、可滚动设置面板及 Ticker 时间差适配。
+- [x] Android 使用 API 30+ 的 WindowInsetsController，API 24–29 使用兼容的窗口标志；常亮使用 FLAG_KEEP_SCREEN_ON。方法只接受合法布尔参数；onWindowFocusChanged 按当前请求恢复全屏，离开／暂停清除常亮。不引入 AndroidX 以外的新显示依赖。
+- [x] 默认进入预览，内置三种配色；颜色调节使用 Flutter 自带控件实现 RGB 滑块，不增加颜色选择器插件。保持暂停、退出按钮在 SafeArea 内。
+- [x] 上述测试通过后提交；真正隐藏系统栏及返回手势的效果由 Task 5 真机验证，mock 通道测试不能替代。
 
 ## Task 4: 最后参数的保存与恢复
 
@@ -126,11 +126,11 @@ expect(clock.animationSeconds, 8.0);
 - `SettingsController extends ChangeNotifier`：构造函数接收 `SettingsStore store`；`AppSettings get settings`、`bool get saveFailed`、`Future<void> load()`、`void update(AppSettings next, {bool commit = false})`、`Future<void> flush()`。实现 `dispose()` 清理定时器，页面关闭／后台事件先调用 flush。
 - 序列化 JSON 包含 `schemaVersion: 1` 和所有 Task 1 字段；数值颜色为 32 位 ARGB。flush 顺序串行写入，200 毫秒防抖；新请求在旧写入期间到达时仍保证最终值是最新设置。
 
-- [ ] 固定 `shared_preferences: 2.5.5`，先执行 `flutter pub get --offline`；确实缺项时获取缺失依赖后恢复离线解析，提交 lockfile。
-- [ ] 写失败测试：load 缺值／损坏值使用默认值；字段合法配置完整往返；快速连续修改只保存最终配置；结束拖动立即 flush；延迟写入时最终存储为较新值。
-- [ ] 写失败存储异常测试：read 抛错不阻止启动；write 抛错设置 saveFailed 且内存参数仍更新；下次保存成功清除错误；dispose 后定时器不继续通知。
-- [ ] 运行 `flutter test test/features/player/settings_controller_test.dart` 确认失败，实现控制器。应用层监听控制器，把 settings、update 回调和 flush 回调传入 Task 3 的 PlayerPage；保存失败在应用层显示“设置未能保存”，不停止动画。加载结束前显示短暂加载状态，避免默认设置覆盖旧数据。
-- [ ] 全部存储测试及 Task 3 界面测试通过，实际关闭再打开应用验证最后参数恢复，提交。
+- [x] 固定 `shared_preferences: 2.5.5`，先执行 `flutter pub get --offline`；确实缺项时获取缺失依赖后恢复离线解析，提交 lockfile。
+- [x] 写失败测试：load 缺值／损坏值使用默认值；字段合法配置完整往返；快速连续修改只保存最终配置；结束拖动立即 flush；延迟写入时最终存储为较新值。
+- [x] 写失败存储异常测试：read 抛错不阻止启动；write 抛错设置 saveFailed 且内存参数仍更新；下次保存成功清除错误；dispose 后定时器不继续通知。
+- [x] 运行 `flutter test test/features/player/settings_controller_test.dart` 确认失败，实现控制器。应用层监听控制器，把 settings、update 回调和 flush 回调传入 Task 3 的 PlayerPage；保存失败在应用层显示“设置未能保存”，不停止动画。加载结束前显示短暂加载状态，避免默认设置覆盖旧数据。
+- [x] 全部存储测试及 Task 3 界面测试通过，实际关闭再打开应用验证最后参数恢复，提交。
 
 ## Task 5: 离线构建、真机验证与交付
 
@@ -138,13 +138,13 @@ expect(clock.animationSeconds, 8.0);
 
 **Interfaces:** 消费完整应用；产生源码、debug APK 的本机路径／SHA-256 和实际验证记录，无发布、推送或自动安装要求。
 
-- [ ] 执行 `dart format --output=none --set-exit-if-changed lib test`、`flutter analyze --no-pub`、`flutter test --no-pub`，全部输出通过。
-- [ ] 从项目 `android/` 调用已安装 Gradle，以用户给定环境执行 `--offline --no-daemon --console plain '-Pkotlin.compiler.execution.strategy=in-process' lintDebug testDebugUnitTest assembleDebug`；明确记录 testDebugUnitTest 是否有测试，不用 NO-SOURCE 冒充测试通过。
-- [ ] 若日志报告 Maven 或 SDK 缺项，只补实际缺少的组件，保留共享缓存，重新运行同一离线命令。不要通过跳过校验或降低版本来消除失败。
-- [ ] 用已安装 ADB 只读查看连接状态；无真机时记录限制，有可用测试设备并获安装授权后验证：两种动画、旋转、调参、后台恢复、暂停常亮、全屏系统栏／返回手势，重点在 API 36 行为。未获得安装授权时先交付 APK 供用户安装。
-- [ ] 如有性能测试设备，使用 profile / release 模式测试帧耗时并保存证据；没有设备时不宣称达到稳定 60fps。验证已安装 APK 的离线运行与设置恢复。
-- [ ] 计算 APK SHA-256，确认 Git 中无 SDK、缓存、local.properties、签名或 APK。README 写明本机运行入口、固定版本和三平台适配现状。
-- [ ] 完成一次独立代码审查并处理有效问题；按用户选定的执行方式使用对应技能，不自动创建其他聊天。最终报告实际检查结果、APK 路径、未验证项及后续平台工作。
+- [x] 执行 `dart format --output=none --set-exit-if-changed lib test`、`flutter analyze --no-pub`、`flutter test --no-pub`，全部输出通过。
+- [x] 从项目 `android/` 调用已安装 Gradle，以用户给定环境执行 `--offline --no-daemon --console plain '-Pkotlin.compiler.execution.strategy=in-process' lintDebug testDebugUnitTest assembleDebug`；明确记录 testDebugUnitTest 是否有测试，不用 NO-SOURCE 冒充测试通过。
+- [x] 若日志报告 Maven 或 SDK 缺项，只补实际缺少的组件，保留共享缓存，重新运行同一离线命令。不要通过跳过校验或降低版本来消除失败。
+- [x] 用已安装 ADB 只读查看连接状态；无真机时记录限制，有可用测试设备并获安装授权后验证：两种动画、旋转、调参、后台恢复、暂停常亮、全屏系统栏／返回手势，重点在 API 36 行为。未获得安装授权时先交付 APK 供用户安装。
+- [x] 如有性能测试设备，使用 profile / release 模式测试帧耗时并保存证据；没有设备时不宣称达到稳定 60fps。验证已安装 APK 的离线运行与设置恢复。
+- [x] 计算 APK SHA-256，确认 Git 中无 SDK、缓存、local.properties、签名或 APK。README 写明本机运行入口、固定版本和三平台适配现状。
+- [x] 完成一次独立代码审查并处理有效问题；按用户选定的执行方式使用对应技能，不自动创建其他聊天。最终报告实际检查结果、APK 路径、未验证项及后续平台工作。
 
 ## Execution Handoff
 

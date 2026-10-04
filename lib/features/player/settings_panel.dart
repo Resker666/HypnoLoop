@@ -66,36 +66,38 @@ class SettingsPanel extends StatelessWidget {
           title: Text(label),
           content: SizedBox(
             width: 320,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Color(value),
-                    borderRadius: BorderRadius.circular(12),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Color(value),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                for (final entry in [('红', 16), ('绿', 8), ('蓝', 0)])
-                  _slider(
-                    entry.$1,
-                    ((value >> entry.$2) & 255).toDouble(),
-                    0,
-                    255,
-                    (number) {
-                      setState(
-                        () => value =
-                            0xFF000000 |
-                            ((value & ~(255 << entry.$2)) |
-                                (number.round() << entry.$2)),
-                      );
-                      changed(value);
-                    },
-                    display: '${(value >> entry.$2) & 255}',
-                    divisions: 255,
-                  ),
-              ],
+                  const SizedBox(height: 20),
+                  for (final entry in [('红', 16), ('绿', 8), ('蓝', 0)])
+                    _slider(
+                      entry.$1,
+                      ((value >> entry.$2) & 255).toDouble(),
+                      0,
+                      255,
+                      (number) {
+                        setState(
+                          () => value =
+                              0xFF000000 |
+                              ((value & ~(255 << entry.$2)) |
+                                  (number.round() << entry.$2)),
+                        );
+                        changed(value);
+                      },
+                      display: '${(value >> entry.$2) & 255}',
+                      divisions: 255,
+                    ),
+                ],
+              ),
             ),
           ),
           actions: [

@@ -60,6 +60,28 @@ void main() {
     await tester.pump();
   }
 
+  testWidgets(
+    'fullscreen sliders update the open sheet without build exceptions',
+    (tester) async {
+      await launch(tester);
+      await fullscreen(tester);
+      await tester.tap(find.byKey(const Key('animation-canvas')));
+      await tester.pump();
+      await tester.tap(find.byTooltip('设置'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.drag(find.byType(Slider).first, const Offset(60, 0));
+      await tester.pump();
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+      expect(settings.value.speed, greaterThan(.5));
+      expect(
+        tester.widget<Slider>(find.byType(Slider).first).value,
+        settings.value.speed,
+      );
+    },
+  );
+
   testWidgets('fullscreen tap, timeout, modal settings and back order', (
     tester,
   ) async {

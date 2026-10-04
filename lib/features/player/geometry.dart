@@ -66,7 +66,6 @@ List<HeartLayer> heartLayers(double animationSeconds, double intervalSeconds) {
   final count = (4 / interval).ceil();
   return [
     for (var i = count; i >= 0; i--)
-      if (phase + i * interval <= 4)
-        HeartLayer((phase + i * interval) / 4, (birth - i) % 2),
+      HeartLayer(((phase + i * interval) / 4).clamp(0.0, 1.0), (birth - i) % 2),
   ];
 }

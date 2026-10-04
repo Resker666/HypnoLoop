@@ -4,6 +4,27 @@ import 'package:hypnoloop/features/player/geometry.dart';
 
 void main() {
   test(
+    'sparse heart layers keep edge colors continuous across a birth boundary',
+    () {
+      const size = Size(390, 844);
+      final radius = coverageRadius(size) * 3.6;
+      final heart = buildUnitHeartPath();
+      int colorAt(double time) {
+        var color = 0xFF291638;
+        for (final layer in heartLayers(time, 2)) {
+          if (layer.scale > 0 &&
+              heart.contains(Offset(0, -410 / (radius * layer.scale)))) {
+            color = layer.colorIndex == 0 ? 0xFFFF8EBD : 0xFF291638;
+          }
+        }
+        return color;
+      }
+
+      expect(colorAt(4.001), colorAt(3.999));
+      expect(colorAt(8.001), colorAt(7.999));
+    },
+  );
+  test(
     'spiral covers diagonal and recalculates for rotated and empty sizes',
     () {
       expect(coverageRadius(const Size(300, 400)), greaterThanOrEqualTo(250));

@@ -52,8 +52,17 @@ class _PlayerPageState extends State<PlayerPage>
   @override
   void didUpdateWidget(covariant PlayerPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _panelSettings.value = widget.settings;
+    if (_panelSettings.value != widget.settings) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _panelSettings.value = widget.settings;
+      });
+    }
     widget.clock.setSpeed(widget.settings.speed);
+  }
+
+  void _changeSettings(AppSettings settings) {
+    _panelSettings.value = settings;
+    widget.onSettingsChanged(settings);
   }
 
   void _tick(Duration elapsed) {
@@ -167,7 +176,7 @@ class _PlayerPageState extends State<PlayerPage>
                   valueListenable: _panelSettings,
                   builder: (_, settings, _) => SettingsPanel(
                     settings: settings,
-                    onChanged: widget.onSettingsChanged,
+                    onChanged: _changeSettings,
                     onChangeEnd: () => unawaited(widget.onCommitSettings()),
                   ),
                 ),
@@ -342,7 +351,7 @@ class _PlayerPageState extends State<PlayerPage>
                       builder: (context, constraints) {
                         final panel = SettingsPanel(
                           settings: widget.settings,
-                          onChanged: widget.onSettingsChanged,
+                          onChanged: _changeSettings,
                           onChangeEnd: () =>
                               unawaited(widget.onCommitSettings()),
                         );

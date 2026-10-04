@@ -21,7 +21,7 @@ Flutter 开发的个人视觉小工具。首版面向 Android：全屏旋转螺�
 
 构建脚本默认离线，直接调用已有 Gradle 8.13。日志确认缺依赖时再加 `-Online`；它使用 Windows 已配置的代理，或显式 `-NetworkProxy http://127.0.0.1:7897`。Google Maven 使用官方备用下载端点，未设置 `MINIMAL_SLEEP_MAVEN_PROXY`。
 
-完整验收可运行 `& .\tools\Verify.ps1`。已生成的 [Android 调试 APK](build/app/outputs/flutter-apk/app-debug.apk) 位于忽略目录，约 140 MiB，包含三个 ABI；文件只在本机存在。
+完整验收可运行 `& .\tools\Verify.ps1`。已生成的 [Android 调试 APK](build/app/outputs/flutter-apk/app-debug.apk) 位于忽略目录，约 154 MiB，包含三个 ABI；文件只在本机存在。已在 Xiaomi 23127PN0CC（Android 16 / API 36）安装并验证主要操作，具体证据见验证记录。
 
 运行到已授权的测试手机：先确认 `adb devices` 的设备 ID，再执行 `flutter run -d <设备ID>`。构建入口及共享工具的完整路径见 [环境文档](docs/development-setup.md)。
 
