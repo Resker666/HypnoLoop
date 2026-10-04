@@ -87,6 +87,16 @@ Flutter 的 included build 和 shared_preferences 的 Android 插件声明自己
 
 ## 后续构建规则
 
+### 桌面图标切换后的调试启动（0.1.2）
+
+使用 `& .\tools\Run-Android.ps1 -DeviceId <设备ID>` 离线构建、安装并启动；已有最新 APK 时可加 `-SkipBuild`，加 `-Attach` 可连接 Flutter 调试器并使用热重载。只有一台已授权设备时可以省略设备 ID。附加调试器后用 `d` 分离，应用继续运行。
+
+当前 Flutter 3.41.5 从 APK 的 Manifest 选择默认启用的 B 别名，并不查询手机保留的组件状态。选过 A／C／D 后，B 已被禁用，直接 `flutter run` 可能启动失败。上述脚本用始终启用的 `MainActivity` 打开应用，再执行 `flutter attach --app-id com.hypnoloop.app`；保留当前图标选择。不要为修复调试启动而额外启用第二个桌面入口，也不要禁用 MainActivity。
+
+原图只维护在 `assets/launcher_icons/`；Gradle 的 `prepareLauncherIcons` Sync 任务生成 `build/app/generated/launcher-icons/drawable-nodpi/`。调整资源命名时，任务声明的 `resourcePattern` 输入会使缓存失效；Sync 清理本任务自己的旧生成文件。以后更新版本应保留四个别名的稳定名称，以免丢失系统保存的选择。
+
+### 通用规则
+
 1. 仅在 HypnoLoop 内建立源码和构建输出，保留 minimal-sleep 的源码和共享工具缓存。
 2. 先核验并固定 Flutter 稳定版，以及它的 Dart、Android SDK、NDK 和 Java 要求。
 3. Flutter SDK、Pub Cache 和本项目临时产物可放在 HypnoLoop 的 `.tools/` 等忽略目录；避免写入其他项目的源码目录。

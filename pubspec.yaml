@@ -1,7 +1,7 @@
 name: hypnoloop
 description: A private spiral and heart visual player.
 publish_to: none
-version: 0.1.1+2
+version: 0.1.2+3
 
 environment:
   sdk: ^3.11.3
@@ -18,3 +18,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/launcher_icons/

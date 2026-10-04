@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep the approved square artwork in the visible 72dp of the 108dp layer. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="16.667%" android:insetTop="16.667%"
+    android:insetRight="16.667%" android:insetBottom="16.667%">
+    <bitmap android:src="@drawable/ic_launcher_c_art" android:gravity="fill" android:filter="true" />
+</inset>

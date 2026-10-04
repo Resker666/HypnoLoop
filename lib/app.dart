@@ -5,6 +5,7 @@ import 'features/player/playback_clock.dart';
 import 'features/player/settings_controller.dart';
 import 'features/player/settings_store.dart';
 import 'platform/display_controller.dart';
+import 'platform/launcher_icon_controller.dart';
 
 class HypnoLoopApp extends StatefulWidget {
   const HypnoLoopApp({super.key, this.store, this.display});
@@ -16,6 +17,7 @@ class HypnoLoopApp extends StatefulWidget {
 
 class _HypnoLoopAppState extends State<HypnoLoopApp> {
   final _clock = PlaybackClock();
+  final _launcherIcons = LauncherIconController();
   late final _display = widget.display ?? DisplayController();
   late final _settings = SettingsController(
     widget.store ?? PreferencesSettingsStore(),
@@ -26,6 +28,7 @@ class _HypnoLoopAppState extends State<HypnoLoopApp> {
   void initState() {
     super.initState();
     _loaded = _settings.load();
+    unawaited(_launcherIcons.load());
   }
 
   @override
@@ -64,6 +67,7 @@ class _HypnoLoopAppState extends State<HypnoLoopApp> {
                 onCommitSettings: _settings.flush,
                 clock: _clock,
                 display: _display,
+                launcherIcons: _launcherIcons,
               ),
               if (_settings.saveFailed)
                 SafeArea(
@@ -92,6 +96,7 @@ class _HypnoLoopAppState extends State<HypnoLoopApp> {
   void dispose() {
     unawaited(_settings.flush().whenComplete(_settings.dispose));
     _clock.dispose();
+    _launcherIcons.dispose();
     super.dispose();
   }
 }

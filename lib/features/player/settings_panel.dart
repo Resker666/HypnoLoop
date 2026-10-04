@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'settings.dart';
+import '../../platform/launcher_icon_controller.dart';
+import '../launcher_icons/launcher_icon_picker.dart';
 
 class SettingsPanel extends StatelessWidget {
   const SettingsPanel({
@@ -7,10 +9,12 @@ class SettingsPanel extends StatelessWidget {
     required this.settings,
     required this.onChanged,
     required this.onChangeEnd,
+    this.launcherIcons,
   });
   final AppSettings settings;
   final ValueChanged<AppSettings> onChanged;
   final VoidCallback onChangeEnd;
+  final LauncherIconController? launcherIcons;
 
   Widget _slider(
     String label,
@@ -257,6 +261,12 @@ class SettingsPanel extends StatelessWidget {
               ),
           ],
         ),
+        if (launcherIcons != null) ...[
+          const SizedBox(height: 24),
+          const Divider(),
+          const SizedBox(height: 8),
+          LauncherIconPicker(controller: launcherIcons!),
+        ],
       ],
     ),
   );

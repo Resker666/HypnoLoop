@@ -46,6 +46,19 @@ flutter {
     source = "../.."
 }
 
+// Share the approved originals with Flutter previews; generate Android resources
+// locally so there is only one maintained copy of each icon in the repository.
+val launcherResources = layout.buildDirectory.dir("generated/launcher-icons")
+val launcherResourcePattern = "ic_launcher_$1_art.png"
+val prepareLauncherIcons = tasks.register<Sync>("prepareLauncherIcons") {
+    inputs.property("resourcePattern", launcherResourcePattern)
+    from("../../assets/launcher_icons") { include("a.png", "b.png", "c.png", "d.png") }
+    into(launcherResources.map { it.dir("drawable-nodpi") })
+    rename("([abcd])\\.png", launcherResourcePattern)
+}
+android.sourceSets.getByName("main").res.srcDir(launcherResources)
+tasks.named("preBuild").configure { dependsOn(prepareLauncherIcons) }
+
 // Flutter 3.41 regenerates Windows SDK paths without escaping the drive colon.
 // Normalize after Dart compilation and before lint reads this generated file.
 val normalizeLocalPropertiesForLint = tasks.register("normalizeLocalPropertiesForLint") {
