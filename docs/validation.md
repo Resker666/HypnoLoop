@@ -1,5 +1,7 @@
 # 验证记录
 
+以下为 0.1.0 的历史记录，APK 生成目录现已被新版覆盖。当前 0.1.1 的证据见 [A 版爱心验证记录](validation-heart-rings.md)。
+
 2026-10-04，在此 Windows 项目目录实施。保留 minimal-sleep 源码，复用其 JDK 17、Gradle 8.13、API 36、Build Tools 35.0.0 和 Maven 缓存；ADB 复用 `D:/soft/platform-tools`。
 
 ## Flutter

@@ -39,7 +39,7 @@ class AppSettings {
         json[key] is num ? (json[key] as num).toDouble() : defaultValue;
     int color(String key, int defaultValue) =>
         json[key] is int ? json[key] as int : defaultValue;
-    return fallback.copyWith(
+    final settings = fallback.copyWith(
       kind: AnimationKind.values.firstWhere(
         (value) => value.name == json['kind'],
         orElse: () => fallback.kind,
@@ -63,6 +63,17 @@ class AppSettings {
         fallback.centerHeartFraction,
       ),
     );
+    if (settings.kind == AnimationKind.hearts &&
+        settings.backgroundArgb == 0xFF291638 &&
+        settings.foregroundArgb == 0xFF291638 &&
+        settings.heartArgb == 0xFFFF8EBD) {
+      return settings.copyWith(
+        backgroundArgb: 0xFFFFFFFF,
+        foregroundArgb: 0xFFF400DA,
+        heartArgb: 0xFFF400DA,
+      );
+    }
+    return settings;
   }
 
   final AnimationKind kind;
@@ -149,9 +160,10 @@ class AppSettings {
     ),
     _ => copyWith(
       kind: AnimationKind.hearts,
-      backgroundArgb: 0xFF291638,
-      foregroundArgb: 0xFF291638,
-      heartArgb: 0xFFFF8EBD,
+      backgroundArgb: 0xFFFFFFFF,
+      foregroundArgb: 0xFFF400DA,
+      heartArgb: 0xFFF400DA,
+      heartIntervalSeconds: 1.5,
     ),
   };
 }

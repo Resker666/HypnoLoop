@@ -4,27 +4,6 @@ import 'package:hypnoloop/features/player/geometry.dart';
 
 void main() {
   test(
-    'sparse heart layers keep edge colors continuous across a birth boundary',
-    () {
-      const size = Size(390, 844);
-      final radius = coverageRadius(size) * 3.6;
-      final heart = buildUnitHeartPath();
-      int colorAt(double time) {
-        var color = 0xFF291638;
-        for (final layer in heartLayers(time, 2)) {
-          if (layer.scale > 0 &&
-              heart.contains(Offset(0, -410 / (radius * layer.scale)))) {
-            color = layer.colorIndex == 0 ? 0xFFFF8EBD : 0xFF291638;
-          }
-        }
-        return color;
-      }
-
-      expect(colorAt(4.001), colorAt(3.999));
-      expect(colorAt(8.001), colorAt(7.999));
-    },
-  );
-  test(
     'spiral covers diagonal and recalculates for rotated and empty sizes',
     () {
       expect(coverageRadius(const Size(300, 400)), greaterThanOrEqualTo(250));
@@ -58,21 +37,28 @@ void main() {
     expect(bounds.height, greaterThan(0));
     expect(path.computeMetrics().single.isClosed, true);
   });
-  test('heart layer count stays bounded and phase is deterministic', () {
+  test('heart ring radii stay finite and bounded at large times', () {
     for (final interval in [.4, 1.0, 2.0]) {
-      final layers = heartLayers(1000000.25, interval);
-      expect(layers.length, lessThanOrEqualTo(11));
-      expect(layers, isNotEmpty);
+      final rings = heartRings(const Size(320, 640), 1000000.25, interval);
+      expect(rings.length, lessThanOrEqualTo(22));
+      expect(rings, isNotEmpty);
       expect(
-        layers.map((value) => value.scale),
-        heartLayers(1000000.25, interval).map((value) => value.scale),
+        rings.map((value) => value.outerRadius),
+        heartRings(
+          const Size(320, 640),
+          1000000.25,
+          interval,
+        ).map((value) => value.outerRadius),
       );
-      for (final layer in layers) {
-        expect(layer.scale.isFinite, true);
-        expect(layer.scale, inInclusiveRange(0, 1));
-        expect(layer.colorIndex, inInclusiveRange(0, 1));
+      for (final ring in rings) {
+        expect(ring.innerRadius.isFinite, true);
+        expect(ring.outerRadius.isFinite, true);
+        expect(ring.innerRadius, greaterThanOrEqualTo(0));
+        expect(ring.outerRadius, greaterThan(ring.innerRadius));
       }
     }
-    expect(heartLayers(1, 0), isEmpty);
+    expect(heartRings(const Size(320, 640), 1, 0), isEmpty);
+    expect(heartRings(Size.zero, 1, 1), isEmpty);
+    expect(heartRings(const Size(320, 640), double.nan, 1), isEmpty);
   });
 }

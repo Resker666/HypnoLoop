@@ -44,12 +44,15 @@ $env:GIT_CONFIG_KEY_0 = 'safe.directory'
 $env:GIT_CONFIG_VALUE_0 = $taskRoot.Replace('\', '/')
 $env:GIT_CONFIG_KEY_1 = 'safe.directory'
 $env:GIT_CONFIG_VALUE_1 = $taskFlutter.Replace('\', '/')
+$taskVersion = [regex]::Match((Get-Content -LiteralPath "$taskRoot\pubspec.yaml" -Raw),
+    '(?m)^version:\s*(\d+\.\d+\.\d+)\+(\d+)\s*$')
+if (-not $taskVersion.Success) { throw 'Expected pubspec version: major.minor.patch+build' }
 $taskProperties = @(
     "sdk.dir=$($taskSdkView.Replace('\', '/').Replace(':', '\:'))",
     "flutter.sdk=$($taskFlutter.Replace('\', '/').Replace(':', '\:'))",
     'flutter.buildMode=debug',
-    'flutter.versionName=0.1.0',
-    'flutter.versionCode=1'
+    "flutter.versionName=$($taskVersion.Groups[1].Value)",
+    "flutter.versionCode=$($taskVersion.Groups[2].Value)"
 )
 [System.IO.File]::WriteAllText((Join-Path $taskRoot 'android\local.properties'),
     ($taskProperties -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
