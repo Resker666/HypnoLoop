@@ -149,7 +149,7 @@ class SettingsPanel extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final entry in [(0, '黑白'), (1, '紫黑'), (2, '粉紫')])
+            for (final entry in [(0, '黑白'), (1, '紫黑'), (2, '粉白')])
               ActionChip(
                 label: Text(entry.$2),
                 avatar: CircleAvatar(

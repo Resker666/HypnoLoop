@@ -2,6 +2,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hypnoloop/features/player/settings.dart';
 
 void main() {
+  test('heart preset selects the approved pink rings on white', () {
+    final settings = AppSettings.defaults().preset(2);
+    expect(settings.kind, AnimationKind.hearts);
+    expect(settings.backgroundArgb, 0xFFFFFFFF);
+    expect(settings.foregroundArgb, 0xFFF400DA);
+    expect(settings.heartArgb, 0xFFF400DA);
+    expect(settings.heartIntervalSeconds / settings.speed, 3);
+  });
+  test('legacy heart preset upgrades without replacing custom colors', () {
+    final old = AppSettings.defaults().toJson()
+      ..addAll({
+        'kind': 'hearts',
+        'backgroundArgb': 0xFF291638,
+        'foregroundArgb': 0xFF291638,
+        'heartArgb': 0xFFFF8EBD,
+        'speed': .8,
+        'heartIntervalSeconds': .6,
+      });
+    final restored = AppSettings.fromJson(old);
+    expect(restored.backgroundArgb, 0xFFFFFFFF);
+    expect(restored.foregroundArgb, 0xFFF400DA);
+    expect(restored.heartArgb, 0xFFF400DA);
+    expect(restored.speed, .8);
+    expect(restored.heartIntervalSeconds, .6);
+    old['heartArgb'] = 0xFF336699;
+    expect(AppSettings.fromJson(old).heartArgb, 0xFF336699);
+    expect(AppSettings.fromJson(old).backgroundArgb, 0xFF291638);
+  });
   test('defaults and JSON round trip preserve the agreed parameters', () {
     final settings = AppSettings.defaults();
     expect(settings.kind, AnimationKind.spiral);

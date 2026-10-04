@@ -61,7 +61,8 @@ class HeartsPainter extends CustomPainter {
     : super(repaint: clock);
   final AppSettings settings;
   final PlaybackClock clock;
-  final Path _heart = buildUnitHeartPath();
+  Size? _cachedSize;
+  Path? _heart;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -70,26 +71,37 @@ class HeartsPainter extends CustomPainter {
       Offset.zero & size,
       Paint()..color = Color(settings.backgroundArgb),
     );
-    final layers = heartLayers(
+    if (_cachedSize != size) {
+      _cachedSize = size;
+      _heart = buildHeartRingPath(size);
+    }
+    final rings = heartRings(
+      size,
       clock.animationSeconds,
       settings.heartIntervalSeconds,
     );
-    // The heart has a concave top. This factor covers even portrait corners.
-    final radius = coverageRadius(size) * 3.6;
-    canvas.save();
-    canvas.translate(size.width / 2, size.height / 2);
-    final paint = Paint();
-    for (final layer in layers) {
-      if (layer.scale == 0) continue;
-      canvas.save();
-      canvas.scale(radius * layer.scale);
-      paint.color = Color(
-        layer.colorIndex == 0 ? settings.heartArgb : settings.foregroundArgb,
-      );
-      canvas.drawPath(_heart, paint);
-      canvas.restore();
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeJoin = StrokeJoin.round;
+    // Expanding a stroke offsets its contour by a fixed distance; scaling the
+    // whole heart would enlarge its cleft and produce the former tunnel shape.
+    for (final ring in rings) {
+      paint
+        ..color = Color(settings.foregroundArgb)
+        ..strokeWidth = ring.outerRadius * 2;
+      canvas.drawPath(_heart!, paint);
+      if (ring.innerRadius > 0) {
+        paint
+          ..color = Color(settings.backgroundArgb)
+          ..strokeWidth = ring.innerRadius * 2;
+        canvas.drawPath(_heart!, paint);
+      }
     }
-    canvas.restore();
+    paint
+      ..color = Color(settings.heartArgb)
+      ..strokeWidth = size.shortestSide * 24 / 320;
+    canvas.drawPath(_heart!, paint);
+    canvas.drawPath(_heart!, Paint()..color = Color(settings.backgroundArgb));
   }
 
   @override

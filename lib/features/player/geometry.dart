@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui';
 
 double coverageRadius(Size size) {
@@ -39,33 +40,66 @@ List<Path> buildSpiralPaths(Size size, int stripes, double density) {
 }
 
 Path buildUnitHeartPath() => Path()
-  ..moveTo(0, -.35)
-  ..cubicTo(-.4, -1, -1.25, -.65, -.95, .05)
-  ..cubicTo(-.8, .45, -.25, .85, 0, 1)
-  ..cubicTo(.25, .85, .8, .45, .95, .05)
-  ..cubicTo(1.25, -.65, .4, -1, 0, -.35)
+  ..moveTo(0, -.34)
+  ..cubicTo(-.42, -1.02, -1.23, -.66, -.95, .04)
+  ..cubicTo(-.80, .44, -.24, .84, 0, .97)
+  ..cubicTo(.24, .84, .80, .44, .95, .04)
+  ..cubicTo(1.23, -.66, .42, -1.02, 0, -.34)
   ..close();
 
-class HeartLayer {
-  const HeartLayer(this.scale, this.colorIndex);
-  final double scale;
-  final int colorIndex;
+Path buildHeartRingPath(Size size) {
+  final radius = size.shortestSide * .265;
+  return buildUnitHeartPath().transform(
+    Float64List.fromList([
+      radius,
+      0,
+      0,
+      0,
+      0,
+      radius,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      size.width / 2,
+      size.height * .455,
+      0,
+      1,
+    ]),
+  );
 }
 
-List<HeartLayer> heartLayers(double animationSeconds, double intervalSeconds) {
-  if (!animationSeconds.isFinite ||
+class HeartRing {
+  const HeartRing(this.innerRadius, this.outerRadius);
+  final double innerRadius, outerRadius;
+}
+
+List<HeartRing> heartRings(
+  Size size,
+  double animationSeconds,
+  double intervalSeconds,
+) {
+  if (size.isEmpty ||
+      !size.width.isFinite ||
+      !size.height.isFinite ||
+      !animationSeconds.isFinite ||
       animationSeconds < 0 ||
       !intervalSeconds.isFinite ||
       intervalSeconds <= 0) {
     return [];
   }
   final interval = intervalSeconds.clamp(.4, 2.0);
-  final birth = (animationSeconds / interval).floor();
-  final phase = animationSeconds % interval;
-  // Include layers born before time zero so the very first frame is filled.
-  final count = (4 / interval).ceil();
+  final phase = (animationSeconds % interval) / interval;
+  final spacing = size.shortestSide * 35 / 320;
+  final halfWidth = size.shortestSide * 13 / 640;
+  final outline = size.shortestSide * 12 / 320;
+  final count = ((coverageRadius(size) + size.shortestSide) / spacing).ceil();
+  double center(int i) => outline + (i + phase) * spacing;
   return [
-    for (var i = count; i >= 0; i--)
-      HeartLayer(((phase + i * interval) / 4).clamp(0.0, 1.0), (birth - i) % 2),
+    for (var i = count; i >= -1; i--)
+      if (center(i) + halfWidth > outline)
+        HeartRing(math.max(0, center(i) - halfWidth), center(i) + halfWidth),
   ];
 }

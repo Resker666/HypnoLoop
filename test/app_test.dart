@@ -57,7 +57,7 @@ void main() {
 
     await open();
     expect(find.text('HypnoLoop'), findsOneWidget);
-    await tester.tap(find.widgetWithText(ActionChip, '粉紫'));
+    await tester.tap(find.widgetWithText(ActionChip, '粉白'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     final boundary =
