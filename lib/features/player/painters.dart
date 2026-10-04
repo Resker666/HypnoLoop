@@ -63,6 +63,7 @@ class HeartsPainter extends CustomPainter {
   final PlaybackClock clock;
   Size? _cachedSize;
   Path? _heart;
+  HeartRingContours? _contours;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -74,33 +75,25 @@ class HeartsPainter extends CustomPainter {
     if (_cachedSize != size) {
       _cachedSize = size;
       _heart = buildHeartRingPath(size);
+      _contours = HeartRingContours(size);
     }
     final rings = heartRings(
       size,
       clock.animationSeconds,
       settings.heartIntervalSeconds,
     );
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeJoin = StrokeJoin.round;
-    // Expanding a stroke offsets its contour by a fixed distance; scaling the
-    // whole heart would enlarge its cleft and produce the former tunnel shape.
+    final paint = Paint();
+    // Filled parallel contours avoid wide-stroke overdraw on Impeller.
     for (final ring in rings) {
-      paint
-        ..color = Color(settings.foregroundArgb)
-        ..strokeWidth = ring.outerRadius * 2;
-      canvas.drawPath(_heart!, paint);
+      paint.color = Color(settings.foregroundArgb);
+      canvas.drawPath(_contours!.offset(ring.outerRadius), paint);
       if (ring.innerRadius > 0) {
-        paint
-          ..color = Color(settings.backgroundArgb)
-          ..strokeWidth = ring.innerRadius * 2;
-        canvas.drawPath(_heart!, paint);
+        paint.color = Color(settings.backgroundArgb);
+        canvas.drawPath(_contours!.offset(ring.innerRadius), paint);
       }
     }
-    paint
-      ..color = Color(settings.heartArgb)
-      ..strokeWidth = size.shortestSide * 24 / 320;
-    canvas.drawPath(_heart!, paint);
+    paint.color = Color(settings.heartArgb);
+    canvas.drawPath(_contours!.offset(size.shortestSide * 12 / 320), paint);
     canvas.drawPath(_heart!, Paint()..color = Color(settings.backgroundArgb));
   }
 

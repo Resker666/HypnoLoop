@@ -73,6 +73,15 @@ void main() {
       final initial = await frame(0);
       final looped = await frame(1.5);
       expect(looped, orderedEquals(initial));
+      final beforeWrap = await frame(1.499);
+      final afterWrap = await frame(1.501);
+      var wrapError = 0;
+      for (var i = 0; i < beforeWrap.length; i += 4) {
+        for (var channel = 0; channel < 3; channel++) {
+          wrapError += (beforeWrap[i + channel] - afterWrap[i + channel]).abs();
+        }
+      }
+      expect(wrapError / (320 * 640 * 3), lessThan(1));
       for (final seconds in [0.0, .4, 1.49]) {
         final bytes = await frame(seconds);
         final center = (290 * 320 + 160) * 4;
