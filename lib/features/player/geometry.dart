@@ -8,8 +8,9 @@ double coverageRadius(Size size) {
 
 List<Path> buildSpiralPaths(Size size, int stripes, double density) {
   final radius = coverageRadius(size);
-  if (radius == 0 || stripes < 2 || !density.isFinite || density <= 0)
+  if (radius == 0 || stripes < 2 || !density.isFinite || density <= 0) {
     return [];
+  }
   final steps = math.max(96, (density * 80).ceil());
   final width = math.pi / stripes;
   Offset point(double r, double angle) =>
@@ -55,8 +56,9 @@ List<HeartLayer> heartLayers(double animationSeconds, double intervalSeconds) {
   if (!animationSeconds.isFinite ||
       animationSeconds < 0 ||
       !intervalSeconds.isFinite ||
-      intervalSeconds <= 0)
+      intervalSeconds <= 0) {
     return [];
+  }
   final interval = intervalSeconds.clamp(.4, 2.0);
   final birth = (animationSeconds / interval).floor();
   final phase = animationSeconds % interval;

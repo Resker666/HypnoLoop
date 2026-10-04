@@ -1,19 +1,32 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'features/player/player_page.dart';
 import 'features/player/playback_clock.dart';
-import 'features/player/settings.dart';
+import 'features/player/settings_controller.dart';
+import 'features/player/settings_store.dart';
 import 'platform/display_controller.dart';
 
 class HypnoLoopApp extends StatefulWidget {
-  const HypnoLoopApp({super.key});
+  const HypnoLoopApp({super.key, this.store, this.display});
+  final SettingsStore? store;
+  final DisplayController? display;
   @override
   State<HypnoLoopApp> createState() => _HypnoLoopAppState();
 }
 
 class _HypnoLoopAppState extends State<HypnoLoopApp> {
   final _clock = PlaybackClock();
-  final _display = DisplayController();
-  AppSettings _settings = AppSettings.defaults().preset(1);
+  late final _display = widget.display ?? DisplayController();
+  late final _settings = SettingsController(
+    widget.store ?? PreferencesSettingsStore(),
+  );
+  late final Future<void> _loaded;
+
+  @override
+  void initState() {
+    super.initState();
+    _loaded = _settings.load();
+  }
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -33,16 +46,51 @@ class _HypnoLoopAppState extends State<HypnoLoopApp> {
         backgroundColor: Color(0xFF171321),
       ),
     ),
-    home: PlayerPage(
-      settings: _settings,
-      onSettingsChanged: (value) => setState(() => _settings = value),
-      onCommitSettings: () async {},
-      clock: _clock,
-      display: _display,
+    home: FutureBuilder<void>(
+      future: _loaded,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return ListenableBuilder(
+          listenable: _settings,
+          builder: (context, _) => Stack(
+            children: [
+              PlayerPage(
+                settings: _settings.settings,
+                onSettingsChanged: _settings.update,
+                onCommitSettings: _settings.flush,
+                clock: _clock,
+                display: _display,
+              ),
+              if (_settings.saveFailed)
+                SafeArea(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Material(
+                        color: const Color(0xFF34223B),
+                        borderRadius: BorderRadius.circular(12),
+                        child: const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: Text('设置未能保存'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     ),
   );
   @override
   void dispose() {
+    unawaited(_settings.flush().whenComplete(_settings.dispose));
     _clock.dispose();
     super.dispose();
   }

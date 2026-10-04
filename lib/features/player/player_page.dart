@@ -71,8 +71,9 @@ class _PlayerPageState extends State<PlayerPage>
     _displayQueue = _displayQueue.then((_) async {
       try {
         await widget.display.apply(fullscreen: fullscreen, keepAwake: awake);
-        if (mounted && _displayError != null)
+        if (mounted && _displayError != null) {
           setState(() => _displayError = null);
+        }
       } catch (_) {
         if (mounted) setState(() => _displayError = '显示模式切换失败');
       }
@@ -83,8 +84,9 @@ class _PlayerPageState extends State<PlayerPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     widget.clock.setForeground(state == AppLifecycleState.resumed);
     _syncPlayback();
-    if (state != AppLifecycleState.resumed)
+    if (state != AppLifecycleState.resumed) {
       unawaited(widget.onCommitSettings());
+    }
   }
 
   void _autoHide() {
@@ -313,15 +315,18 @@ class _PlayerPageState extends State<PlayerPage>
                           color: Color(0xFFCEB9FF),
                         ),
                         SizedBox(width: 10),
-                        Text(
-                          'HypnoLoop',
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: -.8,
+                        Expanded(
+                          child: Text(
+                            'HypnoLoop',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: -.8,
+                            ),
                           ),
                         ),
-                        Spacer(),
                         Text(
                           '光 · 形 · 循环',
                           style: TextStyle(
