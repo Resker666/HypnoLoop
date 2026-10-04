@@ -1,0 +1,17 @@
+.tools/
+.superpowers/
+.dart_tool/
+.flutter-plugins-dependencies
+.idea/
+*.iml
+build/
+coverage/
+*.apk
+*.aab
+*.jks
+*.keystore
+android/local.properties
+android/.gradle/
+android/gradle/wrapper/gradle-wrapper.jar
+android/gradlew
+android/gradlew.bat
