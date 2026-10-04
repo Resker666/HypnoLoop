@@ -16,6 +16,23 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        val launcherIcons = LauncherIconManager(this)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hypnoloop/launcher-icon")
+            .setMethodCallHandler { call, result ->
+                try {
+                    when (call.method) {
+                        "getCurrent" -> result.success(launcherIcons.current())
+                        "setIcon" -> {
+                            val id = call.argument<String>("id")
+                            if (id == null) result.error("invalid-arguments", "Expected icon id", null)
+                            else result.success(launcherIcons.select(id))
+                        }
+                        else -> result.notImplemented()
+                    }
+                } catch (failure: Exception) {
+                    result.error("launcher-icon-failed", failure.message, null)
+                }
+            }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hypnoloop/display")
             .setMethodCallHandler { call, result ->
                 when (call.method) {

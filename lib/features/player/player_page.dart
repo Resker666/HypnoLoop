@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../platform/display_controller.dart';
+import '../../platform/launcher_icon_controller.dart';
 import 'painters.dart';
 import 'playback_clock.dart';
 import 'settings.dart';
@@ -15,12 +16,14 @@ class PlayerPage extends StatefulWidget {
     required this.onCommitSettings,
     required this.clock,
     required this.display,
+    this.launcherIcons,
   });
   final AppSettings settings;
   final ValueChanged<AppSettings> onSettingsChanged;
   final Future<void> Function() onCommitSettings;
   final PlaybackClock clock;
   final DisplayController display;
+  final LauncherIconController? launcherIcons;
   @override
   State<PlayerPage> createState() => _PlayerPageState();
 }
@@ -93,6 +96,9 @@ class _PlayerPageState extends State<PlayerPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     widget.clock.setForeground(state == AppLifecycleState.resumed);
     _syncPlayback();
+    if (state == AppLifecycleState.resumed && widget.launcherIcons != null) {
+      unawaited(widget.launcherIcons!.load());
+    }
     if (state != AppLifecycleState.resumed) {
       unawaited(widget.onCommitSettings());
     }
@@ -176,6 +182,7 @@ class _PlayerPageState extends State<PlayerPage>
                   valueListenable: _panelSettings,
                   builder: (_, settings, _) => SettingsPanel(
                     settings: settings,
+                    launcherIcons: widget.launcherIcons,
                     onChanged: _changeSettings,
                     onChangeEnd: () => unawaited(widget.onCommitSettings()),
                   ),
@@ -351,6 +358,7 @@ class _PlayerPageState extends State<PlayerPage>
                       builder: (context, constraints) {
                         final panel = SettingsPanel(
                           settings: widget.settings,
+                          launcherIcons: widget.launcherIcons,
                           onChanged: _changeSettings,
                           onChangeEnd: () =>
                               unawaited(widget.onCommitSettings()),
