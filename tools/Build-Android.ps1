@@ -1,7 +1,8 @@
 param(
     [switch]$Online,
     [switch]$PrepareOnly,
-    [string[]]$Tasks = @('lintDebug', 'testDebugUnitTest', 'assembleDebug'),
+    [string]$NetworkProxy = '',
+    [string[]]$Tasks = @(':app:lintDebug', ':app:testDebugUnitTest', ':app:assembleDebug'),
     [string]$JavaHome = 'E:\develop\github\minimal-sleep\.tools\jdk\jdk17.0.20_10',
     [string]$SharedAndroidSdk = 'E:\develop\github\minimal-sleep\.tools\android-sdk-ready',
     [string]$AdbDirectory = 'D:\soft\platform-tools',
@@ -44,13 +45,14 @@ $env:GIT_CONFIG_VALUE_0 = $taskRoot.Replace('\', '/')
 $env:GIT_CONFIG_KEY_1 = 'safe.directory'
 $env:GIT_CONFIG_VALUE_1 = $taskFlutter.Replace('\', '/')
 $taskProperties = @(
-    "sdk.dir=$($taskSdkView.Replace('\', '/'))",
-    "flutter.sdk=$($taskFlutter.Replace('\', '/'))",
+    "sdk.dir=$($taskSdkView.Replace('\', '/').Replace(':', '\:'))",
+    "flutter.sdk=$($taskFlutter.Replace('\', '/').Replace(':', '\:'))",
     'flutter.buildMode=debug',
     'flutter.versionName=0.1.0',
     'flutter.versionCode=1'
 )
-Set-Content -LiteralPath (Join-Path $taskRoot 'android\local.properties') -Value $taskProperties -Encoding ascii
+[System.IO.File]::WriteAllText((Join-Path $taskRoot 'android\local.properties'),
+    ($taskProperties -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
 if ($PrepareOnly) { return }
 Push-Location $taskRoot
 try {
@@ -60,8 +62,24 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Pub resolution failed' }
     Push-Location (Join-Path $taskRoot 'android')
     try {
-        $taskGradleArgs = @('--no-daemon', '--console', 'plain', '-Pkotlin.compiler.execution.strategy=in-process')
+        $taskGradleArgs = @('--no-daemon', '--console', 'plain', '-Pkotlin.compiler.execution.strategy=in-process',
+            '--init-script', (Join-Path $PSScriptRoot 'Google-Maven.init.gradle'))
         if (-not $Online) { $taskGradleArgs += '--offline' }
+        if ($Online) {
+            # Java does not automatically use Windows' configured HTTP proxy.
+            if (-not $NetworkProxy) {
+                $taskInternet = Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction SilentlyContinue
+                if ($taskInternet.ProxyEnable -eq 1 -and $taskInternet.ProxyServer -match '^[^;=]+:\d+$') {
+                    $NetworkProxy = "http://$($taskInternet.ProxyServer)"
+                }
+            }
+            if ($NetworkProxy) {
+                $taskProxyUri = [Uri]$NetworkProxy
+                if ($taskProxyUri.Scheme -ne 'http' -or $taskProxyUri.UserInfo) { throw 'Use a credential-free HTTP proxy URL' }
+                $taskGradleArgs += @("-Dhttps.proxyHost=$($taskProxyUri.Host)", "-Dhttps.proxyPort=$($taskProxyUri.Port)",
+                    "-Dhttp.proxyHost=$($taskProxyUri.Host)", "-Dhttp.proxyPort=$($taskProxyUri.Port)")
+            }
+        }
         & $GradleExecutable @taskGradleArgs @Tasks
         if ($LASTEXITCODE -ne 0) { throw 'Android build failed' }
     } finally { Pop-Location }

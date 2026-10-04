@@ -1,0 +1,16 @@
+// Use Google's official alternate endpoint on this network. Artifact versions
+// and signatures remain unchanged. Applied to Flutter's included build too.
+def useGoogleEndpoint = { repository ->
+    if (repository instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository &&
+        repository.url.toString().startsWith('https://dl.google.com/dl/android/maven2')) {
+        repository.setUrl('https://dl-ssl.google.com/android/maven2/')
+    }
+}
+beforeSettings { settings ->
+    settings.pluginManagement.repositories.all(useGoogleEndpoint)
+    settings.dependencyResolutionManagement.repositories.all(useGoogleEndpoint)
+}
+allprojects {
+    repositories.all(useGoogleEndpoint)
+    buildscript.repositories.all(useGoogleEndpoint)
+}

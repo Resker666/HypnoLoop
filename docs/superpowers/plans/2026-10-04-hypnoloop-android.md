@@ -8,7 +8,7 @@
 
 **Tech Stack:** Flutter 3.41.5（`2c9eb20739dfec95e2c74bd3dfa4601b0a8a36aa`）、SDK 自带 Dart、shared_preferences 2.5.5、AGP 8.13.2、Kotlin Android 2.3.21、Gradle 8.13、Java 17、compileSdk / targetSdk 36、Build Tools 35.0.0、minSdk 24。
 
-**Spec:** [首版设计](../specs/2026-10-04-hypnoloop-design.md)。环境路径与核验依据见 [开发环境](../../development-setup.md)。用户已选择 Flutter；本计划等待用户审阅及选择执行方式，尚未执行应用实现。
+**Spec:** [首版设计](../specs/2026-10-04-hypnoloop-design.md)。环境路径与核验依据见 [开发环境](../../development-setup.md)。用户选择 Flutter 并授权当前对话依次实施。Tasks 1–4 已完成，Task 5 的离线构建已通过，独立审查进行中；手机安装测试等待授权。
 
 ## Global Constraints
 

@@ -12,6 +12,7 @@ coverage/
 *.keystore
 android/local.properties
 android/.gradle/
+android/.kotlin/
 android/gradle/wrapper/gradle-wrapper.jar
 android/gradlew
 android/gradlew.bat

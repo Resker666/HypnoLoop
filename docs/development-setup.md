@@ -1,6 +1,6 @@
 # HypnoLoop 开发环境核验
 
-核验日期：2026-10-04。初次检查确认现有 Android 工具与缓存可用，随后按用户选择补充了缺少的 Flutter SDK。尚未创建应用或执行应用构建，未修改 minimal-sleep 源码。
+核验日期：2026-10-04。已创建并测试 Flutter 应用；Android 实际构建结果见 [验证记录](validation.md)。复用现有工具，按实际构建缺项补充 Flutter、应用依赖及 NDK；未修改 minimal-sleep 源码。
 
 ## 已验证的可复用工具
 
@@ -11,7 +11,7 @@
 | Gradle | `E:\develop\github\minimal-sleep\.tools\gradle\gradle-8.13` | 使用上述 JDK 成功执行离线 `--version`，版本 8.13 |
 | Gradle 缓存 | `E:\develop\github\minimal-sleep\.tools\gradle-home` | 存在 Gradle 8.13 缓存和 Maven 模块缓存 |
 | ADB | `D:\soft\platform-tools\adb.exe` | `adb version`：Platform Tools 36.0.0 |
-| Python | `D:\Develop\Python\python.exe` | 路径存在；当前任务尚未使用 |
+| Python | `D:\Develop\Python\python.exe` | 已用于官方 SDK 清单读取、NDK 下载和校验 |
 
 缓存中已确认存在以下版本目录：AGP 8.13.2、Kotlin Gradle Plugin 2.3.21、Compose Compiler Gradle Plugin 2.3.21、Compose BOM 2026.05.00。存在缓存不等于新 Flutter 应用的所有依赖都已缓存，需以后用真实项目验证。
 
@@ -63,7 +63,25 @@ Flutter SDK 的 Windows 官方发行清单请求本次返回 NoSuchKey。随后�
 - Engine：`052f31d115eceda8cbff1b3481fcde4330c4ae12`。
 - 初始化下载了 SDK 必需的 Dart 和 Flutter 命令行工具依赖，Pub Cache 指向项目 `.tools/pub-cache`。
 - 固定标签检出属于 detached HEAD，命令显示 channel 为 `[user-branch]`，不意味着使用开发分支；以后通过明确版本升级，不执行隐式 `flutter upgrade`。
-- 尚未获取应用插件、完整 Android 引擎缓存或补充 NDK；安装成功仅表示 Flutter CLI 可启动，不代表 Android 应用已经构建通过。
+- 已补充 Android 引擎缓存、shared_preferences 2.5.5 及其传递依赖。iOS 与桌面发布引擎未预下载。
+- 实际构建确认缺少 NDK 28.2.13676358；校验官方 ZIP 后安装到本项目 `.tools/android-sdk/ndk/28.2.13676358`，没有重装既有 SDK 平台或 Build Tools，也未下载不需要的 cmdline-tools。
+
+## 项目 SDK 视图与构建入口
+
+`tools/Build-Android.ps1` 建立本地 `.tools/android-sdk/` 视图：`platforms`、`build-tools` 的 junction 指向共享 SDK，`platform-tools` 指向独立 ADB 目录；NDK 单独位于此视图内。`android/local.properties` 和 Pub Cache 只指向本项目忽略目录。不要递归删除指向共享工具的 junction 目标。
+
+```powershell
+. .\tools\Build-Android.ps1 -PrepareOnly
+& .\.tools\flutter\bin\flutter.bat analyze --no-pub
+& .\.tools\flutter\bin\flutter.bat test --no-pub
+& .\tools\Build-Android.ps1
+```
+
+最后一条默认执行离线 `:app:lintDebug :app:testDebugUnitTest :app:assembleDebug`，直接使用已安装 Gradle 8.13。任务明确指向应用，以免 Gradle 的裸任务选择器同时运行发布插件的开发测试；具体 Windows 插件测试限制见验证记录。仅在日志报告缺项后加 `-Online`。
+
+本机 Google Maven 主地址超时，Google 官方备用端点 `https://dl-ssl.google.com/android/maven2/` 已实测可访问。脚本通过 `Google-Maven.init.gradle` 应用于主工程及 Flutter included build，版本不变。在线构建读取 Windows 现有无凭据 HTTP 代理，或使用 `-NetworkProxy`；离线构建不设置网络代理。无本地 Maven relay、无 `MINIMAL_SLEEP_MAVEN_PROXY`。
+
+Flutter 的 included build 和 shared_preferences 的 Android 插件声明自己的构建 classpath（例如 AGP 8.11.1 / 8.13.1、Kotlin 1.8.0 / 2.3.0）。这些缺失 Maven 工件由依赖解析补齐，应用仍使用 AGP 8.13.2 与 Kotlin 2.3.21。模板已从旧 kotlinOptions 迁移到 compilerOptions，Java / Kotlin 目标均为 17。
 
 核验源码：[3.41.5 版本校验](https://github.com/flutter/flutter/blob/3.41.5/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt)、[3.47.5 版本校验](https://github.com/flutter/flutter/blob/3.47.5/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt)。
 

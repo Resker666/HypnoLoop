@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -14,10 +16,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {
@@ -38,6 +36,32 @@ android {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+    }
+}
+
 flutter {
     source = "../.."
+}
+
+// Flutter 3.41 regenerates Windows SDK paths without escaping the drive colon.
+// Normalize after Dart compilation and before lint reads this generated file.
+val normalizeLocalPropertiesForLint = tasks.register("normalizeLocalPropertiesForLint") {
+    mustRunAfter(tasks.matching { it.name.startsWith("compileFlutterBuild") })
+    doLast {
+        val propertiesFile = rootProject.file("local.properties")
+        if (propertiesFile.exists()) {
+            val original = propertiesFile.readText()
+            val escaped = original.replace(Regex("(?m)^([^=\\r\\n]+=[A-Za-z]):")) {
+                "${it.groupValues[1]}\\:"
+            }
+            if (escaped != original) propertiesFile.writeText(escaped)
+        }
+    }
+}
+tasks.matching { it.name.contains("Lint", ignoreCase = true) &&
+    it.name != "normalizeLocalPropertiesForLint" }.configureEach {
+    dependsOn(normalizeLocalPropertiesForLint)
 }
