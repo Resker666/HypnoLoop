@@ -36,8 +36,8 @@ void main() {
         await tester.binding.setSurfaceSize(size);
         await open(tester, MemoryStore());
         expect(find.byTooltip('调整').hitTestable(), findsOneWidget);
-        expect(find.byTooltip('桌面图标').hitTestable(), findsOneWidget);
-        expect(find.byType(Slider), findsOneWidget);
+        expect(find.byTooltip('设置').hitTestable(), findsOneWidget);
+        expect(find.byType(Slider), findsNothing);
         expect(find.text('条纹数量'), findsNothing);
         expect(find.byType(SingleChildScrollView), findsNothing);
         final start = find.byKey(const Key('start-fullscreen'));
@@ -46,6 +46,12 @@ void main() {
         expect(bounds.left, greaterThanOrEqualTo(0));
         expect(bounds.right, lessThanOrEqualTo(size.width));
         expect(bounds.bottom, lessThanOrEqualTo(size.height));
+        expect(
+          tester
+              .getSize(find.byKey(const Key('toggle-preview-playback')))
+              .height,
+          greaterThanOrEqualTo(76),
+        );
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump();
@@ -69,6 +75,8 @@ void main() {
     expect(find.text('扩散间隔'), findsOneWidget);
     expect(find.text('条纹数量'), findsNothing);
     expect(find.text('背景'), findsNothing);
+    await tester.drag(find.byType(Slider).first, const Offset(50, 0));
+    await tester.pump();
     await tester.drag(find.byType(Slider).last, const Offset(50, 0));
     await tester.pump();
     await tester.tap(find.text('配色'));
@@ -77,7 +85,7 @@ void main() {
     expect(find.text('扩散间隔'), findsNothing);
     await tester.tap(find.widgetWithText(ActionChip, '紫黑'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('形状'));
+    await tester.tap(find.text('参数'));
     await tester.pumpAndSettle();
     expect(find.text('条纹数量'), findsOneWidget);
     expect(find.text('扩散间隔'), findsNothing);
@@ -87,7 +95,7 @@ void main() {
     expect(saved['kind'], 'spiral');
     expect(saved['backgroundArgb'], 0xFF130D24);
     expect(saved['foregroundArgb'], 0xFFAE8BFA);
-    expect(saved['speed'], .5);
+    expect(saved['speed'], greaterThan(.5));
     expect(saved['heartIntervalSeconds'], greaterThan(1));
     expect(tester.takeException(), isNull);
   });
@@ -124,7 +132,7 @@ void main() {
         find.byKey(const Key('start-fullscreen')),
         find.byTooltip('调整'),
         find.byTooltip('继续'),
-        find.byType(Slider),
+        find.byKey(const Key('toggle-preview-playback')),
       ]) {
         expect(finder.hitTestable(), findsOneWidget, reason: '$scenario');
         final rect = tester.getRect(finder);

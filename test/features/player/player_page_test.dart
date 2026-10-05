@@ -61,6 +61,27 @@ void main() {
   }
 
   testWidgets(
+    'large home playback button keeps pause state across fullscreen',
+    (tester) async {
+      await launch(tester);
+      await tester.tap(find.byKey(const Key('toggle-preview-playback')));
+      await tester.pump();
+      expect(clock.isPlaying, isFalse);
+      expect(display.requests.last, (false, false));
+      expect(find.text('开始播放'), findsOneWidget);
+      await fullscreen(tester);
+      expect(display.requests.last, (true, false));
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('toggle-preview-playback')));
+      await tester.pump();
+      expect(clock.isPlaying, isTrue);
+      expect(display.requests.last, (false, true));
+      expect(find.text('暂停播放'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
     'fullscreen sliders update the open sheet without build exceptions',
     (tester) async {
       await launch(tester);

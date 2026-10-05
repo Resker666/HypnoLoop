@@ -11,12 +11,10 @@ class AdjustmentPanel extends StatefulWidget {
     required this.settings,
     required this.onChanged,
     required this.onCommit,
-    required this.showSpeed,
   });
   final AppSettings settings;
   final ValueChanged<AppSettings> onChanged;
   final VoidCallback onCommit;
-  final bool showSpeed;
 
   @override
   State<AdjustmentPanel> createState() => _AdjustmentPanelState();
@@ -42,14 +40,6 @@ class _AdjustmentPanelState extends State<AdjustmentPanel> {
                   widget.onCommit();
                 },
               ),
-              if (widget.showSpeed) ...[
-                const SizedBox(height: 20),
-                PlaybackSpeedControl(
-                  settings: widget.settings,
-                  onChanged: widget.onChanged,
-                  onChangeEnd: widget.onCommit,
-                ),
-              ],
               const SizedBox(height: 20),
               CupertinoSlidingSegmentedControl<SettingsSection>(
                 groupValue: _section,
@@ -67,11 +57,19 @@ class _AdjustmentPanelState extends State<AdjustmentPanel> {
                     section: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 9),
                       child: Text(
-                        section == SettingsSection.shape ? '形状' : '配色',
+                        section == SettingsSection.shape ? '参数' : '配色',
                       ),
                     ),
                 },
               ),
+              if (_section == SettingsSection.shape) ...[
+                const SizedBox(height: 20),
+                PlaybackSpeedControl(
+                  settings: widget.settings,
+                  onChanged: widget.onChanged,
+                  onChangeEnd: widget.onCommit,
+                ),
+              ],
             ],
           ),
         ),
