@@ -22,9 +22,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
     await tester.tap(find.byTooltip('暂停'));
     await tester.pump();
-    expect(find.text('桌面图标'), findsOneWidget);
-    await tester.ensureVisible(find.text('桌面图标'));
+    await tester.tap(find.byTooltip('桌面图标'));
     await tester.pumpAndSettle();
+    expect(find.text('桌面图标'), findsOneWidget);
   }
 
   bool selected(WidgetTester tester, String id) => tester
