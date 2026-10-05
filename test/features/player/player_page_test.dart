@@ -102,11 +102,11 @@ void main() {
     await tester.tap(find.byTooltip('设置'));
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pump(const Duration(seconds: 4));
-    expect(find.text('播放设置'), findsOneWidget);
+    expect(find.byKey(const Key('adjustment-sheet')), findsOneWidget);
     await tester.binding.handlePopRoute();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
-    expect(find.text('播放设置'), findsNothing);
+    expect(find.byKey(const Key('adjustment-sheet')), findsNothing);
     expect(find.byKey(const Key('start-fullscreen')), findsNothing);
     await tester.binding.handlePopRoute();
     await tester.pump();

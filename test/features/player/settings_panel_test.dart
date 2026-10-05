@@ -17,14 +17,14 @@ void main() {
         home: Scaffold(
           body: SettingsPanel(
             settings: AppSettings.defaults(),
+            section: SettingsSection.color,
             onChanged: (_) {},
             onChangeEnd: () {},
           ),
         ),
       ),
     );
-    await tester.ensureVisible(find.widgetWithText(OutlinedButton, '背景'));
-    await tester.tap(find.widgetWithText(OutlinedButton, '背景'));
+    await tester.tap(find.text('背景'));
     await tester.pumpAndSettle();
     await tester.binding.setSurfaceSize(const Size(800, 320));
     await tester.pumpAndSettle();

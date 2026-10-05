@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../platform/display_controller.dart';
 import '../../platform/launcher_icon_controller.dart';
+import '../launcher_icons/launcher_icon_picker.dart';
+import 'adjustment_panel.dart';
 import 'painters.dart';
 import 'playback_clock.dart';
+import 'preview_controls.dart';
 import 'settings.dart';
-import 'settings_panel.dart';
 
 class PlayerPage extends StatefulWidget {
   const PlayerPage({
@@ -142,7 +144,12 @@ class _PlayerPageState extends State<PlayerPage>
     _autoHide();
   }
 
-  Future<void> _showSettings() async {
+  Future<void> _showPanel({
+    required String title,
+    required WidgetBuilder builder,
+    Key? key,
+  }) async {
+    if (_settingsOpen) return;
     _settingsOpen = true;
     _hideTimer?.cancel();
     await showModalBottomSheet<void>(
@@ -151,19 +158,20 @@ class _PlayerPageState extends State<PlayerPage>
       useSafeArea: true,
       showDragHandle: true,
       builder: (context) => FractionallySizedBox(
-        heightFactor: .85,
+        heightFactor: .9,
         child: SafeArea(
           top: false,
           child: Column(
+            key: key,
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
                   children: [
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        '播放设置',
-                        style: TextStyle(
+                        title,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
                         ),
@@ -177,17 +185,7 @@ class _PlayerPageState extends State<PlayerPage>
                   ],
                 ),
               ),
-              Expanded(
-                child: ValueListenableBuilder<AppSettings>(
-                  valueListenable: _panelSettings,
-                  builder: (_, settings, _) => SettingsPanel(
-                    settings: settings,
-                    launcherIcons: widget.launcherIcons,
-                    onChanged: _changeSettings,
-                    onChangeEnd: () => unawaited(widget.onCommitSettings()),
-                  ),
-                ),
-              ),
+              Expanded(child: builder(context)),
             ],
           ),
         ),
@@ -198,6 +196,28 @@ class _PlayerPageState extends State<PlayerPage>
     _autoHide();
     unawaited(widget.onCommitSettings());
   }
+
+  Future<void> _showSettings() => _showPanel(
+    title: '调整',
+    key: const Key('adjustment-sheet'),
+    builder: (_) => ValueListenableBuilder<AppSettings>(
+      valueListenable: _panelSettings,
+      builder: (_, settings, _) => AdjustmentPanel(
+        settings: settings,
+        showSpeed: _fullscreen,
+        onChanged: _changeSettings,
+        onCommit: () => unawaited(widget.onCommitSettings()),
+      ),
+    ),
+  );
+
+  Future<void> _showLauncherIcons() => _showPanel(
+    title: '外观设置',
+    builder: (_) => SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      child: LauncherIconPicker(controller: widget.launcherIcons!),
+    ),
+  );
 
   Widget _canvas() => GestureDetector(
     onTap: _toggleControls,
@@ -221,7 +241,7 @@ class _PlayerPageState extends State<PlayerPage>
         padding: const EdgeInsets.all(24),
         child: Material(
           key: const Key('player-toolbar'),
-          color: const Color(0xE61C1828),
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: .94),
           borderRadius: BorderRadius.circular(28),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -255,55 +275,127 @@ class _PlayerPageState extends State<PlayerPage>
     ),
   );
 
-  Widget _preview() => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: _canvas(),
-          ),
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Row(
-          children: [
-            IconButton.filledTonal(
-              tooltip: widget.clock.isPlaying ? '暂停' : '继续',
-              onPressed: _pause,
-              icon: Icon(
-                widget.clock.isPlaying
-                    ? Icons.pause_rounded
-                    : Icons.play_arrow_rounded,
-              ),
+  Widget _preview() => ClipRRect(
+    borderRadius: BorderRadius.circular(32),
+    child: Stack(
+      children: [
+        Positioned.fill(child: _canvas()),
+        Positioned(
+          left: 16,
+          top: 16,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.surface.withValues(alpha: .9),
+              borderRadius: BorderRadius.circular(20),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton.icon(
-                key: const Key('start-fullscreen'),
-                onPressed: _start,
-                icon: const Icon(Icons.fullscreen_rounded),
-                label: const Text('开始全屏'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              child: Text(
+                widget.settings.kind == AnimationKind.spiral
+                    ? '螺旋 · 预览'
+                    : '爱心 · 预览',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-          ],
+          ),
         ),
-      ),
-      const SizedBox(height: 16),
-      const Center(
-        child: Text(
-          '全屏后轻点画面，即可暂停或退出',
-          style: TextStyle(color: Color(0xFFABA6BC), fontSize: 12),
+      ],
+    ),
+  );
+
+  Widget _previewControls({bool compact = false}) => PreviewControls(
+    settings: widget.settings,
+    playing: widget.clock.isPlaying,
+    onChanged: _changeSettings,
+    onCommit: () => unawaited(widget.onCommitSettings()),
+    onPause: _pause,
+    onStart: _start,
+    onAdjust: _showSettings,
+    compact: compact,
+  );
+
+  Widget _home() => SafeArea(
+    child: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(22, 6, 14, 8),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'HypnoLoop',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -.6,
+                  ),
+                ),
+              ),
+              if (widget.launcherIcons != null)
+                IconButton(
+                  tooltip: '桌面图标',
+                  onPressed: _showLauncherIcons,
+                  icon: const Icon(Icons.settings_outlined, size: 22),
+                ),
+            ],
+          ),
         ),
-      ),
-      const SizedBox(height: 16),
-    ],
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > constraints.maxHeight * 1.3) {
+                final compact =
+                    constraints.maxHeight < 300 ||
+                    MediaQuery.textScalerOf(context).scale(14) > 20;
+                final panelWidth = compact
+                    ? (constraints.maxWidth * .7)
+                          .clamp(350.0, 480.0)
+                          .clamp(0.0, constraints.maxWidth - 112)
+                    : 330.0;
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Row(
+                    children: [
+                      Expanded(child: _preview()),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: panelWidth,
+                        child: _previewControls(compact: compact),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _preview(),
+                    ),
+                  ),
+                  Transform.translate(
+                    offset: const Offset(0, -12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: _previewControls(),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ],
+    ),
   );
 
   @override
@@ -315,86 +407,7 @@ class _PlayerPageState extends State<PlayerPage>
     child: Scaffold(
       body: Stack(
         children: [
-          if (_fullscreen)
-            Positioned.fill(child: _canvas())
-          else
-            SafeArea(
-              child: Column(
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(24, 20, 24, 20),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.auto_awesome,
-                          size: 22,
-                          color: Color(0xFFCEB9FF),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'HypnoLoop',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: -.8,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '光 · 形 · 循环',
-                          style: TextStyle(
-                            color: Color(0xFFABA6BC),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final panel = SettingsPanel(
-                          settings: widget.settings,
-                          launcherIcons: widget.launcherIcons,
-                          onChanged: _changeSettings,
-                          onChangeEnd: () =>
-                              unawaited(widget.onCommitSettings()),
-                        );
-                        if (constraints.maxWidth >
-                            constraints.maxHeight * 1.3) {
-                          return Row(
-                            children: [
-                              Expanded(child: _preview()),
-                              SizedBox(width: 330, child: panel),
-                            ],
-                          );
-                        }
-                        return Column(
-                          children: [
-                            Expanded(flex: 5, child: _preview()),
-                            Expanded(
-                              flex: 4,
-                              child: DecoratedBox(
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF171321),
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(28),
-                                  ),
-                                ),
-                                child: panel,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          if (_fullscreen) Positioned.fill(child: _canvas()) else _home(),
           if (_fullscreen && _controls) _toolbar(),
           if (_displayError != null)
             SafeArea(

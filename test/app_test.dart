@@ -57,9 +57,16 @@ void main() {
 
     await open();
     expect(find.text('HypnoLoop'), findsOneWidget);
-    await tester.tap(find.widgetWithText(ActionChip, '粉白'));
+    await tester.tap(find.byTooltip('暂停'));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.tap(find.byTooltip('调整'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('配色'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ActionChip, '粉白'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('关闭设置'));
+    await tester.pumpAndSettle();
     final boundary =
         capture.currentContext!.findRenderObject()! as RenderRepaintBoundary;
     await tester.runAsync(() async {
@@ -74,6 +81,9 @@ void main() {
     await tester.pump();
     expect(store.value, isNotNull);
     await open();
+    await tester.tap(find.byTooltip('调整'));
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump();
     expect(find.text('扩散间隔'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
