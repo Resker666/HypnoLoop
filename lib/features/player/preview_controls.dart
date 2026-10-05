@@ -74,11 +74,28 @@ class PreviewControls extends StatelessWidget {
         onCommit();
       },
     );
-    final speed = PlaybackSpeedControl(
-      settings: settings,
-      onChanged: onChanged,
-      onChangeEnd: onCommit,
-      compact: compact,
+    final play = Tooltip(
+      message: playing ? '暂停' : '继续',
+      child: FilledButton.icon(
+        key: const Key('toggle-preview-playback'),
+        onPressed: onPause,
+        icon: Icon(
+          playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+          size: 26,
+        ),
+        label: Text(playing ? '暂停播放' : '开始播放'),
+        style: FilledButton.styleFrom(
+          minimumSize: Size.fromHeight(compact ? 56 : 76),
+          padding: EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: compact ? 8 : 16,
+          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+      ),
     );
     return Material(
       key: const Key('preview-controls'),
@@ -87,7 +104,7 @@ class PreviewControls extends StatelessWidget {
       elevation: 6,
       shadowColor: Colors.black26,
       child: Padding(
-        padding: EdgeInsets.all(compact ? 12 : 18),
+        padding: EdgeInsets.all(compact ? 10 : 18),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -100,46 +117,58 @@ class PreviewControls extends StatelessWidget {
                         .clamp(112.0, double.infinity),
                     child: mode,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(child: speed),
+                  const SizedBox(width: 12),
+                  Expanded(child: play),
                 ],
               )
-            else ...[
+            else
               mode,
-              const SizedBox(height: 16),
-              speed,
-            ],
-            SizedBox(height: compact ? 8 : 6),
-            Row(
-              children: [
-                IconButton.filledTonal(
-                  tooltip: playing ? '暂停' : '继续',
-                  onPressed: onPause,
-                  icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow),
+            if (!compact) ...[
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: onAdjust,
+                style: TextButton.styleFrom(
+                  foregroundColor: colors.onSurfaceVariant,
+                  minimumSize: const Size.fromHeight(44),
+                  padding: EdgeInsets.zero,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton.icon(
-                    key: const Key('start-fullscreen'),
-                    onPressed: onStart,
-                    icon: const Icon(Icons.fullscreen_rounded, size: 20),
-                    label: const Text('开始全屏'),
-                    style: FilledButton.styleFrom(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: compact ? 8 : 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${settings.speed.toStringAsFixed(1)}×'
+                        '${settings.kind == AnimationKind.hearts ? ' · 间隔 ${settings.heartIntervalSeconds.toStringAsFixed(1)} 秒' : ''}',
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.chevron_right_rounded, size: 18),
+                  ],
+                ),
+              ),
+            ],
+            if (!compact) ...[const SizedBox(height: 16), play],
+            SizedBox(height: compact ? 6 : 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _shortcut(
+                    key: const Key('start-fullscreen'),
+                    label: '进入全屏',
+                    icon: Icons.fullscreen_rounded,
+                    onPressed: onStart,
                   ),
                 ),
                 const SizedBox(width: 10),
-                IconButton.filledTonal(
-                  tooltip: '调整',
-                  onPressed: onAdjust,
-                  icon: const Icon(Icons.tune_rounded),
+                Expanded(
+                  child: Tooltip(
+                    message: '调整',
+                    child: _shortcut(
+                      label: '调整',
+                      icon: Icons.tune_rounded,
+                      onPressed: onAdjust,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -148,4 +177,28 @@ class PreviewControls extends StatelessWidget {
       ),
     );
   }
+
+  Widget _shortcut({
+    Key? key,
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) => FilledButton.tonal(
+    key: key,
+    onPressed: onPressed,
+    style: FilledButton.styleFrom(
+      minimumSize: const Size.fromHeight(48),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      textStyle: const TextStyle(fontSize: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 20),
+        const SizedBox(width: 8),
+        Flexible(child: Text(label, textAlign: TextAlign.center)),
+      ],
+    ),
+  );
 }

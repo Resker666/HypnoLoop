@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import '../../platform/display_controller.dart';
 import '../../platform/launcher_icon_controller.dart';
-import '../launcher_icons/launcher_icon_picker.dart';
+import '../app_settings/app_settings_page.dart';
 import 'adjustment_panel.dart';
 import 'painters.dart';
 import 'playback_clock.dart';
@@ -204,20 +204,19 @@ class _PlayerPageState extends State<PlayerPage>
       valueListenable: _panelSettings,
       builder: (_, settings, _) => AdjustmentPanel(
         settings: settings,
-        showSpeed: _fullscreen,
         onChanged: _changeSettings,
         onCommit: () => unawaited(widget.onCommitSettings()),
       ),
     ),
   );
 
-  Future<void> _showLauncherIcons() => _showPanel(
-    title: '外观设置',
-    builder: (_) => SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: LauncherIconPicker(controller: widget.launcherIcons!),
-    ),
-  );
+  Future<void> _showAppSettings() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => AppSettingsPage(launcherIcons: widget.launcherIcons),
+      ),
+    );
+  }
 
   Widget _canvas() => GestureDetector(
     onTap: _toggleControls,
@@ -338,12 +337,11 @@ class _PlayerPageState extends State<PlayerPage>
                   ),
                 ),
               ),
-              if (widget.launcherIcons != null)
-                IconButton(
-                  tooltip: '桌面图标',
-                  onPressed: _showLauncherIcons,
-                  icon: const Icon(Icons.settings_outlined, size: 22),
-                ),
+              IconButton(
+                tooltip: '设置',
+                onPressed: _showAppSettings,
+                icon: const Icon(Icons.settings_outlined, size: 22),
+              ),
             ],
           ),
         ),

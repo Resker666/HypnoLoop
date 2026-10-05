@@ -1,5 +1,7 @@
 package com.hypnoloop.app
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.view.View
 import android.view.WindowInsets
@@ -16,6 +18,26 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hypnoloop/project")
+            .setMethodCallHandler { call, result ->
+                try {
+                    when (call.method) {
+                        "getVersion" -> {
+                            @Suppress("DEPRECATION")
+                            val info = packageManager.getPackageInfo(packageName, 0)
+                            result.success(info.versionName)
+                        }
+                        "openProject" -> {
+                            startActivity(Intent(Intent.ACTION_VIEW,
+                                Uri.parse("https://github.com/Resker666/HypnoLoop")))
+                            result.success(true)
+                        }
+                        else -> result.notImplemented()
+                    }
+                } catch (failure: Exception) {
+                    result.error("project-failed", failure.message, null)
+                }
+            }
         val launcherIcons = LauncherIconManager(this)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "hypnoloop/launcher-icon")
             .setMethodCallHandler { call, result ->
